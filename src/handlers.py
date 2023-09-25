@@ -97,7 +97,13 @@ def market_data_handler(message):
     product = ProductService(market_data)
     if product.is_active:
         arbitrage = ArbitrageRateService(market_data_state=deepcopy(market_data_state), last_product=product)
-        print(arbitrage.arbitrage_opportunities)
+        opportunities = arbitrage.arbitrage_opportunities
+        print("Arbitrage opportunities:")
+        if opportunities:
+            for op in opportunities:
+                print(op)
+        else:
+            print("None")
     market_data_state[market_data.product_name] = product
 
 

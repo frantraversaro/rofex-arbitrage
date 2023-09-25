@@ -24,7 +24,7 @@ class ImplicitRateService:
 class ProductService:
     def __init__(self, market_data_handler):
         self.market_data_handler = market_data_handler
-        self.product = market_data_handler.product_name
+        self.product_name = market_data_handler.product_name
         self.connected = True
 
     @property
@@ -33,15 +33,18 @@ class ProductService:
         A product_name is considered is_active when it receives not None bid and ask prices
         :return:
         """
-        active = False
+        active_future = False
+        active_spot = False
         if self.market_data_handler.implicit_bid_rate and self.market_data_handler.implicit_ask_rate:
-            active = True
-        return active
+            active_future = True
+        if self.market_data_handler.spot_market_data['bid']['price'] and self.market_data_handler.spot_market_data['ask']['price']:
+            active_spot = True
+        return active_future and active_spot
 
     def __repr__(self):
-        out = f"Product: {self.product} - Not Active"
+        out = f"Product: {self.product_name} - Not Active"
         if self.is_active:
-            out = f"Product: {self.product} - Ask Rate:{self.implicit_ask_rate} / Bid Rate:{self.implicit_bid_rate}"
+            out = f"Product: {self.product_name} - Ask Rate:{self.implicit_ask_rate} / Bid Rate:{self.implicit_bid_rate}"
         return out
 
     @property
@@ -57,7 +60,7 @@ class ProductService:
         """
         :return: The month/year of the product_name (i.e. 'OCT/23')
         """
-        return expiration_date_str_from_product_name(self.product)
+        return expiration_date_str_from_product_name(self.product_name)
 
 
 class ArbitrageRateService:
@@ -79,10 +82,16 @@ class ArbitrageRateService:
         _arbitrage_opportunities = []
         if self.compatible_date_products:
             for product in self.compatible_date_products:
-                if self.last_product.impicit_bid_rate > product.implicit_ask_rate:
-                    _arbitrage_opportunities.append(f"Leg1 : Buy {stock_ticker_from_prduct_name(self.last_product.name)}, Sell {self.last_product.name} \n Leg2: Sell {stock_ticker_from_prduct_name(product.name)}, Buy {product.name}")
-                if product.impicit_bid_rate > self.last_product.implicit_ask_rate:
-                    _arbitrage_opportunities.append(f"Leg1 : Buy {stock_ticker_from_prduct_name(product.name)}, Sell {product.name} \n Leg2: Sell {stock_ticker_from_prduct_name(self.last_product.name)}, Buy {self.last_product.name}")
+                if self.last_product.implicit_bid_rate > product.implicit_ask_rate:
+                    _arbitrage_opportunities.append(f"""
+                    Leg1 : Buy {stock_ticker_from_prduct_name(self.last_product.product_name)}, Sell {self.last_product.product_name} - Bid Rate: {self.last_product.implicit_bid_rate:.4%}
+                    Leg2: Sell {stock_ticker_from_prduct_name(product.product_name)}, Buy {product.product_name} - Ask Rate: {product.implicit_ask_rate:.4%}
+                    """)
+                if product.implicit_bid_rate > self.last_product.implicit_ask_rate:
+                    _arbitrage_opportunities.append(f"""
+                    Leg1 : Buy {stock_ticker_from_prduct_name(product.product_name)}, Sell {product.product_name} - Bid Rate: {product.implicit_bid_rate:.4%}
+                    Leg2: Sell {stock_ticker_from_prduct_name(self.last_product.product_name)}, Buy {self.last_product.product_name} - Ask Rate: {product.implicit_ask_rate:.4%}
+                    """)
         return _arbitrage_opportunities
 
 

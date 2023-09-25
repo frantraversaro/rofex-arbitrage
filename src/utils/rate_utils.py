@@ -13,6 +13,6 @@ def implicit_rate(future, spot):
     :param spot: the spot price
     :return: The implicit rate
     """
-    if future is None or spot is None:
+    if future is None or not spot:
         return None
     return future / spot - 1
