@@ -90,7 +90,7 @@ class ArbitrageRateService:
                 if product.implicit_bid_rate > self.last_product.implicit_ask_rate:
                     _arbitrage_opportunities.append(f"""
                     Leg1 : Buy {stock_ticker_from_prduct_name(product.product_name)}, Sell {product.product_name} - Bid Rate: {product.implicit_bid_rate:.4%}
-                    Leg2: Sell {stock_ticker_from_prduct_name(self.last_product.product_name)}, Buy {self.last_product.product_name} - Ask Rate: {product.implicit_ask_rate:.4%}
+                    Leg2: Sell {stock_ticker_from_prduct_name(self.last_product.product_name)}, Buy {self.last_product.product_name} - Ask Rate: {self.last_product.implicit_ask_rate:.4%}
                     """)
         return _arbitrage_opportunities
 
